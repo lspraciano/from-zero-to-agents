@@ -7,12 +7,14 @@ from langchain_core.prompts import (
 from langchain_core.runnables import RunnableSerializable
 from pydantic import BaseModel, Field
 
+from langchain.introduce_langchain_18_organized.llm.llm import llm
+
 
 class RouterResponse(BaseModel):
     agent: Literal["math", "general"] = Field(description="Agente para o qual a mensagem deve ser roteada")
 
 
-router_parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=RouterResponse)
+router_parser: PydanticOutputParser = PydanticOutputParser(pydantic_object=RouterResponse)
 
 router_system_prompt: str = """
 Você é um roteador de mensagens. Sua única função é decidir para qual agente a mensagem do usuário deve ser enviada.
@@ -30,4 +32,4 @@ router_template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
     ]
 )
 
-router_chain: RunnableSerializable = router_template | llm | router_parse
+router_chain: RunnableSerializable = router_template | llm | router_parser

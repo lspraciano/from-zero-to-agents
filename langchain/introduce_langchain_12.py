@@ -70,11 +70,13 @@ while True:
     )
 
     if response.use_tool:
-        tool_result: float = calculator_tool(expression=response.expression)
+        current_tool_expression: str = response.expression
 
-        print(f"[Tool] {response.expression} = {tool_result}")
+        current_tool_result: float = calculator_tool(expression=current_tool_expression)
 
-        response.response = f"O resultado de {response.expression} é {tool_result}"
+        print(f"[Tool] {current_tool_expression} = {current_tool_result}")
+
+        response.response = f"O resultado de {current_tool_expression} é {current_tool_result}"
 
     ai_message: AIMessage = AIMessage(content=response.response)
 

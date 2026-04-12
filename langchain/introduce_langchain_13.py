@@ -1,5 +1,4 @@
 import os
-from typing import Any
 
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, BaseMessage, ToolMessage
@@ -8,7 +7,6 @@ from langchain_core.prompts import (
     ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
 )
 from langchain_core.runnables import RunnableSerializable
-from langchain_core.tools import tool, BaseTool
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
@@ -22,27 +20,9 @@ llm: ChatOpenAI = ChatOpenAI(
 )
 
 
-@tool
-def calculator_tool(expression: str) -> float:
-    """Calcula uma expressão matemática e retorna o resultado."""
-    return eval(expression)
-
-
-@tool
-def reverse_text_tool(text: str) -> str:
-    """Inverte o texto fornecido."""
-    return text[::-1]
-
-
-llm_with_tools = llm.bind_tools(
-    tools=[
-        calculator_tool,
-        reverse_text_tool,
-    ]
-)
-
-
 class Response(BaseModel):
+    use_tool: bool = Field(description="Se deve usar a calculadora ou não")
+    expression: str = Field(description="Expressão matemática para calcular, vazia se não usar tool")
     response: str = Field(description="Resposta final ao usuário")
 
 
@@ -51,7 +31,10 @@ parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=Response)
 system_prompt: str = """
 Você é um assistente geral.
 
-Quando não houver mais tool calls, responda APENAS com um JSON válido, sem texto adicional.
+Você tem acesso a uma calculadora. Quando o usuário fizer uma pergunta matemática,
+use a calculadora definindo use_tool como true e a expressão em expression.
+Quando o resultado da calculadora estiver disponível no histórico, use-o na sua resposta.
+Quando não precisar da calculadora, apenas responda normalmente.
 
 {format_instructions}
 """
@@ -66,23 +49,17 @@ template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
     ]
 )
 
-chain: RunnableSerializable = template | llm_with_tools
-
-tools: dict = {
-    calculator_tool.name: calculator_tool,
-    reverse_text_tool.name: reverse_text_tool,
-}
+chain: RunnableSerializable = template | llm | parse
 
 history: list[BaseMessage] = []
+
+def calculator_tool(expression: str) -> float:
+    return eval(expression)
 
 while True:
     user_message: str = input("You: ")
 
-    human_message: HumanMessage = HumanMessage(content=user_message)
-
-    history.append(human_message)
-
-    response: AIMessage = chain.invoke(
+    response: Response = chain.invoke(
         input={
             "user_message": user_message,
             "format_instructions": parse.get_format_instructions(),
@@ -90,24 +67,25 @@ while True:
         }
     )
 
-    while response.tool_calls:
-        history.append(response)
+    human_message: HumanMessage = HumanMessage(content=user_message)
 
-        for tool_call in response.tool_calls:
-            selected_tool: BaseTool = tools[tool_call["name"]]
+    history.append(human_message)
 
-            tool_result: Any = selected_tool.invoke(input=tool_call["args"])
+    if response.use_tool:
+        current_tool_expression: str = response.expression
 
-            print(f"[Tool] {tool_call['name']}({tool_call['args']}) = {tool_result}")
+        current_tool_result: float = calculator_tool(expression=current_tool_expression)
 
-            tool_message: ToolMessage = ToolMessage(
-                content=str(tool_result),
-                tool_call_id=tool_call["id"],
-            )
+        print(f"[Tool] {current_tool_expression} = {current_tool_result}")
 
-            history.append(tool_message)
+        current_tool_message: ToolMessage = ToolMessage(
+            content=str(current_tool_result),
+            tool_call_id="calculator",
+        )
 
-        response = chain.invoke(
+        history.append(current_tool_message)
+
+        response: Response = chain.invoke(
             input={
                 "user_message": user_message,
                 "format_instructions": parse.get_format_instructions(),
@@ -115,10 +93,8 @@ while True:
             }
         )
 
-    parsed_response: Response = parse.invoke(input=response)
-
-    ai_message: AIMessage = AIMessage(content=parsed_response.response)
+    ai_message: AIMessage = AIMessage(content=response.response)
 
     history.append(ai_message)
 
-    print(f"AI response: {parsed_response.response}")
+    print(f"AI response: {response.response}")

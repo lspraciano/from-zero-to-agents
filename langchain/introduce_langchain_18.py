@@ -6,7 +6,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import (
     ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
 )
-from langchain_core.runnables import RunnableSerializable
+from langchain_core.runnables import RunnableSerializable, Runnable
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool, BaseTool
 from pydantic import BaseModel, Field
@@ -63,7 +63,7 @@ class MathResponse(BaseModel):
 
 math_parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=MathResponse)
 
-llm_with_tools = llm.bind_tools(tools=[calculator_tool])
+llm_with_tools: Runnable = llm.bind_tools(tools=[calculator_tool])
 
 math_system_prompt: str = """
 Você é um assistente especialista em matemática.
@@ -132,6 +132,8 @@ while True:
 
     print(f"[Router] → {router_response.agent}")
 
+    parsed_response: MathResponse | GeneralResponse
+
     if router_response.agent == "math":
         response: AIMessage = math_chain.invoke(
             input={
@@ -145,19 +147,23 @@ while True:
             history.append(response)
 
             for tool_call in response.tool_calls:
-                selected_tool: BaseTool = tools[tool_call["name"]]
-                tool_result = selected_tool.invoke(input=tool_call["args"])
+                current_tool_name: str = tool_call["name"]
+                current_tool_args: dict = tool_call["args"]
 
-                print(f"[Tool] {tool_call['name']}({tool_call['args']}) = {tool_result}")
+                current_tool: BaseTool = tools[current_tool_name]
 
-                tool_message: ToolMessage = ToolMessage(
-                    content=str(tool_result),
+                current_tool_result = current_tool.invoke(input=current_tool_args)
+
+                print(f"[Tool] {current_tool_name}({current_tool_args}) = {current_tool_result}")
+
+                current_tool_message: ToolMessage = ToolMessage(
+                    content=str(current_tool_result),
                     tool_call_id=tool_call["id"],
                 )
 
-                history.append(tool_message)
+                history.append(current_tool_message)
 
-            response = math_chain.invoke(
+            response: AIMessage = math_chain.invoke(
                 input={
                     "user_message": user_message,
                     "format_instructions": math_parse.get_format_instructions(),

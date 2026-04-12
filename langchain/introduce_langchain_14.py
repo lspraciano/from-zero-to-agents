@@ -75,18 +75,20 @@ while True:
     )
 
     while response.use_tool:
-        tool_result: float = calculator_tool(expression=response.expression)
+        current_tool_expression: str = response.expression
 
-        print(f"[Tool] {response.expression} = {tool_result}")
+        current_tool_result: float = calculator_tool(expression=current_tool_expression)
 
-        tool_message: ToolMessage = ToolMessage(
-            content=str(tool_result),
+        print(f"[Tool] {current_tool_expression} = {current_tool_result}")
+
+        current_tool_message: ToolMessage = ToolMessage(
+            content=str(current_tool_result),
             tool_call_id="calculator",
         )
 
-        history.append(tool_message)
+        history.append(current_tool_message)
 
-        response = chain.invoke(
+        response: Response = chain.invoke(
             input={
                 "user_message": user_message,
                 "format_instructions": parse.get_format_instructions(),

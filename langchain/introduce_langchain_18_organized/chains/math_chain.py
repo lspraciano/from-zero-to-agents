@@ -3,9 +3,11 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import (
     ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
 )
-from langchain_core.runnables import RunnableSerializable
-from langchain_core.tools import BaseTool
+from langchain_core.runnables import RunnableSerializable, Runnable
 from pydantic import BaseModel, Field
+
+from langchain.introduce_langchain_18_organized.llm.llm import llm
+from langchain.introduce_langchain_18_organized.tool.calculator_tool import calculator_tool
 
 load_dotenv()
 
@@ -14,9 +16,9 @@ class MathResponse(BaseModel):
     response: str = Field(description="Resposta final ao usuário")
 
 
-math_parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=MathResponse)
+math_parser: PydanticOutputParser = PydanticOutputParser(pydantic_object=MathResponse)
 
-llm_with_tools = llm.bind_tools(tools=[calculator_tool])
+llm_with_tools: Runnable = llm.bind_tools(tools=[calculator_tool])
 
 math_system_prompt: str = """
 Você é um assistente especialista em matemática.
@@ -35,7 +37,3 @@ math_template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
 )
 
 math_chain: RunnableSerializable = math_template | llm_with_tools
-
-tools: dict[str, BaseTool] = {
-    calculator_tool.name: calculator_tool,
-}

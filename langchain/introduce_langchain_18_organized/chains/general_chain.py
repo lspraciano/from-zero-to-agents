@@ -5,12 +5,14 @@ from langchain_core.prompts import (
 from langchain_core.runnables import RunnableSerializable
 from pydantic import BaseModel, Field
 
+from langchain.introduce_langchain_18_organized.llm.llm import llm
+
 
 class GeneralResponse(BaseModel):
     response: str = Field(description="Resposta final ao usuário")
 
 
-general_parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=GeneralResponse)
+general_parser: PydanticOutputParser = PydanticOutputParser(pydantic_object=GeneralResponse)
 
 general_system_prompt: str = """
 Você é um assistente de conhecimento geral.
@@ -28,4 +30,4 @@ general_template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
     ]
 )
 
-general_chain: RunnableSerializable = general_template | llm | general_parse
+general_chain: RunnableSerializable = general_template | llm | general_parser
