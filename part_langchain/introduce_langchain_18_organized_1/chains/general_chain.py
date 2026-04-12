@@ -1,23 +1,26 @@
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import (
-    ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
 )
 from langchain_core.runnables import RunnableSerializable
 from pydantic import BaseModel, Field
 
-from part_langchain.introduce_langchain_18_organized.llm.llm import llm
+from part_langchain.introduce_langchain_18_organized_1.llm.llm import llm
 
 
 class GeneralResponse(BaseModel):
     response: str = Field(description="Resposta final ao usuário")
 
 
-general_parser: PydanticOutputParser = PydanticOutputParser(pydantic_object=GeneralResponse)
+general_parser: PydanticOutputParser = PydanticOutputParser(
+    pydantic_object=GeneralResponse
+)
 
 general_system_prompt: str = """
 Você é um assistente de conhecimento geral.
-
-Responda APENAS com um JSON válido, sem texto adicional.
 
 {format_instructions}
 """

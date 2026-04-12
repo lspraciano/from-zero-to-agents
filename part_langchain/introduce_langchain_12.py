@@ -4,7 +4,10 @@ from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import (
-    ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
 )
 from langchain_core.runnables import RunnableSerializable
 from langchain_openai import ChatOpenAI
@@ -12,7 +15,7 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-model: str = "gpt-4o-mini"
+model: str = "gpt-4.1-mini"
 
 llm: ChatOpenAI = ChatOpenAI(
     model=model,
@@ -22,11 +25,13 @@ llm: ChatOpenAI = ChatOpenAI(
 
 class Response(BaseModel):
     use_tool: bool = Field(description="Se deve usar a calculadora ou não")
-    expression: str = Field(description="Expressão matemática para calcular, vazia se não usar tool")
+    expression: str = Field(
+        description="Expressão matemática para calcular, vazia se não usar tool"
+    )
     response: str = Field(description="Resposta final ao usuário")
 
 
-parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=Response)
+parser: PydanticOutputParser = PydanticOutputParser(pydantic_object=Response)
 
 system_prompt: str = """
 Você é um assistente geral.
@@ -49,7 +54,7 @@ template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
     ]
 )
 
-chain: RunnableSerializable = template | llm | parse
+chain: RunnableSerializable = template | llm | parser
 
 history: list[BaseMessage] = []
 
@@ -64,21 +69,25 @@ while True:
     response: Response = chain.invoke(
         input={
             "user_message": user_message,
-            "format_instructions": parse.get_format_instructions(),
+            "format_instructions": parser.get_format_instructions(),
             "history": history,
         }
     )
 
+    print(f"[Raw Response] {response}")
+
     if response.use_tool:
-        current_tool_expression: str = response.expression
+        tool_expression: str = response.expression
 
-        current_tool_result: float = calculator_tool(expression=current_tool_expression)
+        tool_result: float = calculator_tool(expression=tool_expression)
 
-        print(f"[Tool] {current_tool_expression} = {current_tool_result}")
+        print(f"[Tool] {tool_expression} = {tool_result}")
 
-        response.response = f"O resultado de {current_tool_expression} é {current_tool_result}"
+        response.response = f"O resultado de {tool_expression} é {tool_result}"
 
-    ai_message: AIMessage = AIMessage(content=response.response)
+    response_dumped: str = response.model_dump_json()
+
+    ai_message: AIMessage = AIMessage(content=response_dumped)
 
     human_message: HumanMessage = HumanMessage(content=user_message)
 
@@ -86,4 +95,4 @@ while True:
 
     history.append(ai_message)
 
-    print(f"AI response: {response.response}")
+    print(f"AI response: {response}")

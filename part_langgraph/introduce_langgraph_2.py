@@ -5,7 +5,10 @@ from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, BaseMessage, ToolMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import (
-    ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
 )
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
@@ -15,7 +18,7 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-model: str = "gpt-4o-mini"
+model: str = "gpt-4.1-mini"
 
 llm: ChatOpenAI = ChatOpenAI(
     model=model,
@@ -24,6 +27,7 @@ llm: ChatOpenAI = ChatOpenAI(
 
 
 # --- Tools ---
+
 
 @tool
 def calculator_tool(expression: str) -> float:
@@ -36,6 +40,7 @@ llm_with_tools = llm.bind_tools(tools=[calculator_tool])
 
 # --- State ---
 
+
 class State(TypedDict):
     user_message: str
     history: list[BaseMessage]
@@ -45,11 +50,16 @@ class State(TypedDict):
 
 # --- Router ---
 
+
 class RouterResponse(BaseModel):
-    agent: Literal["math", "general"] = Field(description="Agente para o qual a mensagem deve ser roteada")
+    agent: Literal["math", "general"] = Field(
+        description="Agente para o qual a mensagem deve ser roteada"
+    )
 
 
-router_parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=RouterResponse)
+router_parse: PydanticOutputParser = PydanticOutputParser(
+    pydantic_object=RouterResponse
+)
 
 router_system_prompt: str = """
 Você é um roteador de mensagens. Analise o histórico da conversa e a mensagem atual do usuário para decidir para qual agente direcionar.
@@ -74,6 +84,7 @@ router_chain = router_template | llm | router_parse
 
 
 # --- Math Agent ---
+
 
 class MathResponse(BaseModel):
     response: str = Field(description="Resposta final ao usuário")
@@ -102,11 +113,14 @@ math_chain = math_template | llm_with_tools
 
 # --- General Agent ---
 
+
 class GeneralResponse(BaseModel):
     response: str = Field(description="Resposta final ao usuário")
 
 
-general_parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=GeneralResponse)
+general_parse: PydanticOutputParser = PydanticOutputParser(
+    pydantic_object=GeneralResponse
+)
 
 general_system_prompt: str = """
 Você é um assistente de conhecimento geral.
@@ -128,6 +142,7 @@ general_chain = general_template | llm | general_parse
 
 
 # --- Nodes ---
+
 
 def router_node(state: State) -> dict:
     router_response: RouterResponse = router_chain.invoke(

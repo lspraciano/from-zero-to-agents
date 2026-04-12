@@ -4,7 +4,10 @@ from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, BaseMessage, ToolMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import (
-    ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
 )
 from langchain_core.runnables import RunnableSerializable
 from langchain_openai import ChatOpenAI
@@ -12,7 +15,7 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-model: str = "gpt-4o-mini"
+model: str = "gpt-4.1-mini"
 
 llm: ChatOpenAI = ChatOpenAI(
     model=model,
@@ -22,11 +25,13 @@ llm: ChatOpenAI = ChatOpenAI(
 
 class Response(BaseModel):
     use_tool: bool = Field(description="Se deve usar a calculadora ou não")
-    expression: str = Field(description="Expressão matemática para calcular, vazia se não usar tool")
+    expression: str = Field(
+        description="Expressão matemática para calcular, vazia se não usar tool"
+    )
     response: str = Field(description="Resposta final ao usuário")
 
 
-parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=Response)
+parser: PydanticOutputParser = PydanticOutputParser(pydantic_object=Response)
 
 system_prompt: str = """
 Você é um assistente geral.
@@ -50,7 +55,7 @@ template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
     ]
 )
 
-chain: RunnableSerializable = template | llm | parse
+chain: RunnableSerializable = template | llm | parser
 
 history: list[BaseMessage] = []
 
@@ -69,35 +74,46 @@ while True:
     response: Response = chain.invoke(
         input={
             "user_message": user_message,
-            "format_instructions": parse.get_format_instructions(),
+            "format_instructions": parser.get_format_instructions(),
             "history": history,
         }
     )
 
+    print(f"[Raw Response] {response}")
+
+    response_dumped: str = response.model_dump_json()
+
+    ai_message: AIMessage = AIMessage(content=response_dumped)
+
+    history.append(ai_message)
+
     while response.use_tool:
-        current_tool_expression: str = response.expression
+        tool_expression: str = response.expression
 
-        current_tool_result: float = calculator_tool(expression=current_tool_expression)
+        tool_result: float = calculator_tool(expression=tool_expression)
 
-        print(f"[Tool] {current_tool_expression} = {current_tool_result}")
+        tool_response: str = f"[Tool] O resultado de {tool_expression} é {tool_result}"
 
-        current_tool_message: ToolMessage = ToolMessage(
-            content=str(current_tool_result),
-            tool_call_id="calculator",
-        )
+        print(tool_response)
 
-        history.append(current_tool_message)
+        tool_message: AIMessage = AIMessage(content=tool_response)
+
+        history.append(tool_message)
 
         response: Response = chain.invoke(
             input={
                 "user_message": user_message,
-                "format_instructions": parse.get_format_instructions(),
+                "format_instructions": parser.get_format_instructions(),
                 "history": history,
             }
         )
 
-    ai_message: AIMessage = AIMessage(content=response.response)
+        print(f"[After Tool Response] {response}")
 
-    history.append(ai_message)
+        response_dumped: str = response.model_dump_json()
 
-    print(f"AI response: {response.response}")
+        ai_message: AIMessage = AIMessage(content=response_dumped)
+
+        history.append(ai_message)
+
+    print(f"AI response: {response}")

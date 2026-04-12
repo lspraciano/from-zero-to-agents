@@ -1,20 +1,22 @@
 import os
+from typing import Literal
 
 from dotenv import load_dotenv
-from langchain_core.messages import AIMessage, HumanMessage, BaseMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import (
-    ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
 )
-from langchain_core.runnables import RunnableSerializable, Runnable
+from langchain_core.runnables import RunnableSerializable
 from langchain_openai import ChatOpenAI
-from langchain_core.tools import tool, BaseTool
 from pydantic import BaseModel, Field
-from typing import Literal
 
 load_dotenv()
 
-model: str = "gpt-4o-mini"
+model: str = "gpt-4.1-mini"
 
 llm: ChatOpenAI = ChatOpenAI(
     model=model,
@@ -22,24 +24,23 @@ llm: ChatOpenAI = ChatOpenAI(
 )
 
 
-@tool
-def calculator_tool(expression: str) -> float:
-    """Calcula uma expressão matemática e retorna o resultado."""
-    return eval(expression)
-
-
 # --- Router ---
 
+
 class RouterResponse(BaseModel):
-    agent: Literal["math", "general"] = Field(description="Agente para o qual a mensagem deve ser roteada")
+    agent: Literal["bio", "general"] = Field(
+        description="Agente para o qual a mensagem deve ser roteada"
+    )
 
 
-router_parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=RouterResponse)
+router_parser: PydanticOutputParser = PydanticOutputParser(
+    pydantic_object=RouterResponse
+)
 
 router_system_prompt: str = """
 Você é um roteador de mensagens. Sua única função é decidir para qual agente a mensagem do usuário deve ser enviada.
 
-- "math": para perguntas matemáticas ou que envolvam cálculos
+- "bio": para perguntas voltadas para biológia
 - "general": para perguntas de conhecimento geral
 
 {format_instructions}
@@ -52,54 +53,48 @@ router_template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
     ]
 )
 
-router_chain: RunnableSerializable = router_template | llm | router_parse
+router_chain: RunnableSerializable = router_template | llm | router_parser
 
 
-# --- Math Agent ---
+# --- Bio Agent ---
 
-class MathResponse(BaseModel):
+
+class BioResponse(BaseModel):
     response: str = Field(description="Resposta final ao usuário")
 
 
-math_parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=MathResponse)
+bio_parser: PydanticOutputParser = PydanticOutputParser(pydantic_object=BioResponse)
 
-llm_with_tools: Runnable = llm.bind_tools(tools=[calculator_tool])
-
-math_system_prompt: str = """
-Você é um assistente especialista em matemática.
-
-Quando não houver mais tool calls, responda APENAS com um JSON válido, sem texto adicional.
+bio_system_prompt: str = """
+Você é um assistente especialista em biologia.
 
 {format_instructions}
 """
 
-math_template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
+bio_template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
     messages=[
-        SystemMessagePromptTemplate.from_template(template=math_system_prompt),
+        SystemMessagePromptTemplate.from_template(template=bio_system_prompt),
         MessagesPlaceholder(variable_name="history"),
         HumanMessagePromptTemplate.from_template(template="{user_message}"),
     ]
 )
 
-math_chain: RunnableSerializable = math_template | llm_with_tools
-
-tools: dict[str, BaseTool] = {
-    calculator_tool.name: calculator_tool,
-}
+bio_chain: RunnableSerializable = bio_template | llm | bio_parser
 
 
 # --- General Agent ---
+
 
 class GeneralResponse(BaseModel):
     response: str = Field(description="Resposta final ao usuário")
 
 
-general_parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=GeneralResponse)
+general_parser: PydanticOutputParser = PydanticOutputParser(
+    pydantic_object=GeneralResponse
+)
 
 general_system_prompt: str = """
 Você é um assistente de conhecimento geral.
-
-Responda APENAS com um JSON válido, sem texto adicional.
 
 {format_instructions}
 """
@@ -112,8 +107,7 @@ general_template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
     ]
 )
 
-general_chain: RunnableSerializable = general_template | llm | general_parse
-
+general_chain: RunnableSerializable = general_template | llm | general_parser
 
 # --- Orquestrador ---
 
@@ -122,72 +116,45 @@ history: list[BaseMessage] = []
 while True:
     user_message: str = input("You: ")
 
-    # Roteamento
-    router_response: RouterResponse = router_chain.invoke(
-        input={
-            "user_message": user_message,
-            "format_instructions": router_parse.get_format_instructions(),
-        }
-    )
-
-    print(f"[Router] → {router_response.agent}")
-
-    parsed_response: MathResponse | GeneralResponse
-
-    if router_response.agent == "math":
-        response: AIMessage = math_chain.invoke(
-            input={
-                "user_message": user_message,
-                "format_instructions": math_parse.get_format_instructions(),
-                "history": history,
-            }
-        )
-
-        while response.tool_calls:
-            history.append(response)
-
-            for tool_call in response.tool_calls:
-                current_tool_name: str = tool_call["name"]
-                current_tool_args: dict = tool_call["args"]
-
-                current_tool: BaseTool = tools[current_tool_name]
-
-                current_tool_result = current_tool.invoke(input=current_tool_args)
-
-                print(f"[Tool] {current_tool_name}({current_tool_args}) = {current_tool_result}")
-
-                current_tool_message: ToolMessage = ToolMessage(
-                    content=str(current_tool_result),
-                    tool_call_id=tool_call["id"],
-                )
-
-                history.append(current_tool_message)
-
-            response: AIMessage = math_chain.invoke(
-                input={
-                    "user_message": user_message,
-                    "format_instructions": math_parse.get_format_instructions(),
-                    "history": history,
-                }
-            )
-
-        parsed_response: MathResponse = math_parse.invoke(input=response)
-
-    else:
-        parsed_response: GeneralResponse = general_chain.invoke(
-            input={
-                "user_message": user_message,
-                "format_instructions": general_parse.get_format_instructions(),
-                "history": history,
-            }
-        )
-
     human_message: HumanMessage = HumanMessage(content=user_message)
-
-    ai_message: AIMessage = AIMessage(content=parsed_response.response)
 
     history.append(human_message)
 
+    router_response: RouterResponse = router_chain.invoke(
+        input={
+            "user_message": user_message,
+            "format_instructions": router_parser.get_format_instructions(),
+        }
+    )
+
+    print(f"[Router] → {router_response}")
+
+    if router_response.agent == "bio":
+        bio_response: BioResponse = bio_chain.invoke(
+            input={
+                "user_message": user_message,
+                "format_instructions": bio_parser.get_format_instructions(),
+                "history": history,
+            }
+        )
+
+        ai_message: AIMessage = AIMessage(content=bio_response.response)
+
+        print(f"[Bio Agent] → {bio_response}")
+
+    else:
+        general_response: GeneralResponse = general_chain.invoke(
+            input={
+                "user_message": user_message,
+                "format_instructions": general_parser.get_format_instructions(),
+                "history": history,
+            }
+        )
+
+        ai_message: AIMessage = AIMessage(content=general_response.response)
+
+        print(f"[General Agent] → {general_response}")
+
     history.append(ai_message)
 
-    print(f"AI response: {parsed_response.response}")
+    print(f"AI response: {ai_message}")

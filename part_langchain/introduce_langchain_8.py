@@ -4,21 +4,25 @@ import os
 from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import (
-    ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
 )
 from langchain_core.runnables import RunnableSerializable
 from langchain_openai import ChatOpenAI
 
 load_dotenv()
 
-model: str = "gpt-4o-mini"
+model: str = "gpt-4.1-mini"
 
 llm: ChatOpenAI = ChatOpenAI(
     model=model,
     api_key=os.getenv("OPENAI_API_KEY"),
 )
 
-parse: StrOutputParser = StrOutputParser()
+print(os.getenv("OPENAI_API_KEY"))
+
+parser: StrOutputParser = StrOutputParser()
 
 system_prompt: str = """
 Você é um assistente especialista em {area}.
@@ -26,7 +30,7 @@ Você é um assistente especialista em {area}.
 Responda APENAS com um JSON válido, sem texto adicional, no seguinte formato:
 {{
     "response": "sua resposta aqui",
-    "area": "resumo da intenção do usuário"
+    "summary": "resumo da intenção do usuário"
 }}
 """
 
@@ -39,7 +43,7 @@ template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
     ]
 )
 
-chain: RunnableSerializable = template | llm | parse
+chain: RunnableSerializable = template | llm | parser
 
 user_message: str = input("You: ")
 

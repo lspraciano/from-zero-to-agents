@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-model: str = "gpt-4o-mini"
+model: str = "gpt-4.1-mini"
 
 llm: ChatOpenAI = ChatOpenAI(
     model=model,
@@ -23,6 +23,7 @@ llm: ChatOpenAI = ChatOpenAI(
 
 # --- Tools ---
 
+
 @tool
 def calculator_tool(expression: str) -> float:
     """Calcula uma expressão matemática e retorna o resultado."""
@@ -30,6 +31,7 @@ def calculator_tool(expression: str) -> float:
 
 
 # --- State ---
+
 
 class State(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
@@ -39,8 +41,11 @@ class State(TypedDict):
 
 # --- Router ---
 
+
 class RouterResponse(BaseModel):
-    agent: Literal["math", "general"] = Field(description="Agente para o qual a mensagem deve ser roteada")
+    agent: Literal["math", "general"] = Field(
+        description="Agente para o qual a mensagem deve ser roteada"
+    )
 
 
 router_agent: CompiledStateGraph = create_agent(
@@ -60,6 +65,7 @@ Considere o contexto completo da conversa para entender a real intenção do usu
 
 # --- Math Agent ---
 
+
 class MathResponse(BaseModel):
     response: str = Field(description="Resposta final ao usuário")
 
@@ -74,6 +80,7 @@ math_agent: CompiledStateGraph = create_agent(
 
 # --- General Agent ---
 
+
 class GeneralResponse(BaseModel):
     response: str = Field(description="Resposta final ao usuário")
 
@@ -87,6 +94,7 @@ general_agent: CompiledStateGraph = create_agent(
 
 
 # --- Nodes ---
+
 
 def router_node(state: State) -> dict:
     result: dict = router_agent.invoke(input={"messages": state["messages"]})

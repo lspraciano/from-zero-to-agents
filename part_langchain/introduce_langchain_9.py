@@ -3,7 +3,9 @@ import os
 from dotenv import load_dotenv
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import (
-    ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
 )
 from langchain_core.runnables import RunnableSerializable
 from langchain_openai import ChatOpenAI
@@ -11,7 +13,7 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-model: str = "gpt-4o-mini"
+model: str = "gpt-4.1-mini"
 
 llm: ChatOpenAI = ChatOpenAI(
     model=model,
@@ -21,10 +23,10 @@ llm: ChatOpenAI = ChatOpenAI(
 
 class Response(BaseModel):
     response: str = Field(description="Resposta do assistente")
-    area: str = Field(description="Resumo da intenção do usuário")
+    summary: str = Field(description="Resumo da intenção do usuário")
 
 
-parse: PydanticOutputParser = PydanticOutputParser(pydantic_object=Response)
+parser: PydanticOutputParser = PydanticOutputParser(pydantic_object=Response)
 
 system_prompt: str = """
 Você é um assistente especialista em {area}.
@@ -41,7 +43,7 @@ template: ChatPromptTemplate = ChatPromptTemplate.from_messages(
     ]
 )
 
-chain: RunnableSerializable = template | llm | parse
+chain: RunnableSerializable = template | llm | parser
 
 user_message: str = input("You: ")
 
@@ -49,7 +51,7 @@ response: Response = chain.invoke(
     input={
         "area": "Física",
         "user_message": user_message,
-        "format_instructions": parse.get_format_instructions(),
+        "format_instructions": parser.get_format_instructions(),
     }
 )
 

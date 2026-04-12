@@ -8,14 +8,14 @@ from langchain_openai import ChatOpenAI
 
 load_dotenv()
 
-model: str = "gpt-4o-mini"
+model: str = "gpt-4.1-mini"
 
 llm: ChatOpenAI = ChatOpenAI(
     model=model,
     api_key=os.getenv("OPENAI_API_KEY"),
 )
 
-parse: StrOutputParser = StrOutputParser()
+parser: StrOutputParser = StrOutputParser()
 
 system_prompt: str = """
 Você responde apenas com emojis. Nada de texto.
@@ -28,7 +28,7 @@ messages: list[BaseMessage] = [
     HumanMessage(content=user_message),
 ]
 
-chain: RunnableSerializable = llm | parse
+chain: RunnableSerializable = llm | parser
 
 response: str = chain.invoke(input=messages)
 

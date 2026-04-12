@@ -8,7 +8,7 @@ load_dotenv()
 
 client: OpenAI = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-model: str = "gpt-4o-mini"
+model: str = "gpt-4.1-mini"
 
 system_prompt: str = """
 Você responde apenas com emojis. Nada de texto.
@@ -23,7 +23,7 @@ messages: list[dict] = [
 
 response: ChatCompletion = client.chat.completions.create(
     model=model,
-    messages=messages,
+    messages=messages,  # type: ignore
 )
 
 print(f"AI response: {response.choices[0].message.content}")
