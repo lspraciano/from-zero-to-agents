@@ -3,12 +3,12 @@ from typing import Any
 from langchain_core.messages import AIMessage, HumanMessage, BaseMessage, ToolMessage
 from langchain_core.tools import BaseTool
 
-from langchain.introduce_langchain_18_organized.chains.general_chain import (
+from part_langchain.introduce_langchain_18_organized.chains.general_chain import (
     general_chain, general_parser,
     GeneralResponse
 )
-from langchain.introduce_langchain_18_organized.chains.math_chain import math_chain, math_parser, MathResponse
-from langchain.introduce_langchain_18_organized.chains.router_chain import router_chain, router_parser, RouterResponse
+from part_langchain.introduce_langchain_18_organized.chains.math_chain import math_chain, math_parser, MathResponse
+from part_langchain.introduce_langchain_18_organized.chains.router_chain import router_chain, router_parser, RouterResponse
 from tool.calculator_tool import calculator_tool
 
 tools: dict[str, BaseTool] = {

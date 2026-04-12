@@ -7,7 +7,7 @@ from langchain_core.prompts import (
 from langchain_core.runnables import RunnableSerializable
 from pydantic import BaseModel, Field
 
-from langchain.introduce_langchain_18_organized.llm.llm import llm
+from part_langchain.introduce_langchain_18_organized.llm.llm import llm
 
 
 class RouterResponse(BaseModel):

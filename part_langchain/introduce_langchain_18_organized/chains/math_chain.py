@@ -6,8 +6,8 @@ from langchain_core.prompts import (
 from langchain_core.runnables import RunnableSerializable, Runnable
 from pydantic import BaseModel, Field
 
-from langchain.introduce_langchain_18_organized.llm.llm import llm
-from langchain.introduce_langchain_18_organized.tool.calculator_tool import calculator_tool
+from part_langchain.introduce_langchain_18_organized.llm.llm import llm
+from part_langchain.introduce_langchain_18_organized.tool.calculator_tool import calculator_tool
 
 load_dotenv()
 
