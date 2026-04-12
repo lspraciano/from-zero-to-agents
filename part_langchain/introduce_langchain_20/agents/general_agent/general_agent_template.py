@@ -5,7 +5,7 @@ from langchain_core.prompts import (
     MessagesPlaceholder,
 )
 
-from part_langchain.introduce_langchain_18_organized_2.agents.general_agent.general_agent_system_prompt import (
+from part_langchain.introduce_langchain_20.agents.general_agent.general_agent_system_prompt import (
     general_agent_system_prompt,
 )
 

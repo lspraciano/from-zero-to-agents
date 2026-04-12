@@ -27,7 +27,9 @@ def node_a(state: State) -> dict:
 
     print("[Node A] Processing...")
 
-    node_a_response: str = f"Eu, o node_a recebi: {current_user_message_length} carácteres"
+    node_a_response: str = (
+        f"Eu, o node_a recebi: {current_user_message_length} carácteres"
+    )
 
     ai_message: AIMessage = AIMessage(content=node_a_response)
 
@@ -42,7 +44,9 @@ def node_b(state: State) -> dict:
 
     print("[Node B] Processing...")
 
-    node_b_response: str = f"Eu, o node_b recebi: {current_user_message_length} carácteres"
+    node_b_response: str = (
+        f"Eu, o node_b recebi: {current_user_message_length} carácteres"
+    )
 
     ai_message: AIMessage = AIMessage(content=node_b_response)
 
@@ -51,7 +55,9 @@ def node_b(state: State) -> dict:
     }
 
 
-def node_router_conditional_edge(state: State) -> Literal[
+def node_router_conditional_edge(
+    state: State,
+) -> Literal[
     "node_a",
     "node_b",
 ]:

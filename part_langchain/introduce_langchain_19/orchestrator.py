@@ -1,16 +1,16 @@
 from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 
-from part_langchain.introduce_langchain_18_organized_1.chains.bio_chain import (
+from part_langchain.introduce_langchain_19.chains.bio_chain import (
     bio_chain,
     BioResponse,
     bio_parser,
 )
-from part_langchain.introduce_langchain_18_organized_1.chains.general_chain import (
+from part_langchain.introduce_langchain_19.chains.general_chain import (
     general_chain,
     general_parser,
     GeneralResponse,
 )
-from part_langchain.introduce_langchain_18_organized_1.chains.router_chain import (
+from part_langchain.introduce_langchain_19.chains.router_chain import (
     router_chain,
     router_parser,
     RouterResponse,

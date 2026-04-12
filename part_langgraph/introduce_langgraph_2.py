@@ -26,7 +26,9 @@ def node_b(state: State) -> None:
     print("[Node B] Processing...")
 
 
-def node_router_conditional_edge(state: State) -> Literal[
+def node_router_conditional_edge(
+    state: State,
+) -> Literal[
     "node_a",
     "node_b",
 ]:

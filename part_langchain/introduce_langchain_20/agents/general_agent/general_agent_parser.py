@@ -1,6 +1,6 @@
 from langchain_core.output_parsers import PydanticOutputParser
 
-from part_langchain.introduce_langchain_18_organized_2.agents.general_agent.general_agent_response_format import (
+from part_langchain.introduce_langchain_20.agents.general_agent.general_agent_response_format import (
     GeneralAgentResponseFormat,
 )
 

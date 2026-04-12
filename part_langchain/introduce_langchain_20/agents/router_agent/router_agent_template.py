@@ -4,7 +4,7 @@ from langchain_core.prompts import (
     HumanMessagePromptTemplate,
 )
 
-from part_langchain.introduce_langchain_18_organized_2.agents.router_agent.router_agent_system_prompt import (
+from part_langchain.introduce_langchain_20.agents.router_agent.router_agent_system_prompt import (
     router_agent_system_prompt,
 )
 

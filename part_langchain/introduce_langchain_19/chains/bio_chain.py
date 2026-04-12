@@ -8,7 +8,7 @@ from langchain_core.prompts import (
 from langchain_core.runnables import RunnableSerializable
 from pydantic import BaseModel, Field
 
-from part_langchain.introduce_langchain_18_organized_1.llm.llm import llm
+from part_langchain.introduce_langchain_19.llm.llm import llm
 
 
 class BioResponse(BaseModel):

@@ -1,30 +1,30 @@
 from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 
-from part_langchain.introduce_langchain_18_organized_2.agents.bio_agent.bio_agent_chain import (
+from part_langchain.introduce_langchain_20.agents.bio_agent.bio_agent_chain import (
     bio_agent_chain,
 )
-from part_langchain.introduce_langchain_18_organized_2.agents.bio_agent.bio_agent_parser import (
+from part_langchain.introduce_langchain_20.agents.bio_agent.bio_agent_parser import (
     bio_agent_parser,
 )
-from part_langchain.introduce_langchain_18_organized_2.agents.bio_agent.bio_agent_response_format import (
+from part_langchain.introduce_langchain_20.agents.bio_agent.bio_agent_response_format import (
     BioAgentResponseFormat,
 )
-from part_langchain.introduce_langchain_18_organized_2.agents.general_agent.general_agent_chain import (
+from part_langchain.introduce_langchain_20.agents.general_agent.general_agent_chain import (
     general_agent_chain,
 )
-from part_langchain.introduce_langchain_18_organized_2.agents.general_agent.general_agent_parser import (
+from part_langchain.introduce_langchain_20.agents.general_agent.general_agent_parser import (
     general_agent_parser,
 )
-from part_langchain.introduce_langchain_18_organized_2.agents.general_agent.general_agent_response_format import (
+from part_langchain.introduce_langchain_20.agents.general_agent.general_agent_response_format import (
     GeneralAgentResponseFormat,
 )
-from part_langchain.introduce_langchain_18_organized_2.agents.router_agent.router_agent_chain import (
+from part_langchain.introduce_langchain_20.agents.router_agent.router_agent_chain import (
     router_agent_chain,
 )
-from part_langchain.introduce_langchain_18_organized_2.agents.router_agent.router_agent_parser import (
+from part_langchain.introduce_langchain_20.agents.router_agent.router_agent_parser import (
     router_agent_parser,
 )
-from part_langchain.introduce_langchain_18_organized_2.agents.router_agent.router_agent_response_format import (
+from part_langchain.introduce_langchain_20.agents.router_agent.router_agent_response_format import (
     RouterAgentResponseFormat,
 )
 

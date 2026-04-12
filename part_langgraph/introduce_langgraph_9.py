@@ -1,3 +1,4 @@
+import uuid
 from typing import TypedDict, Literal, Annotated
 
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
@@ -29,7 +30,9 @@ def node_a(state: State) -> dict:
 
     print("[Node A] Processing...")
 
-    node_a_response: str = f"Eu, o node_a recebi: {current_user_message_length} carácteres"
+    node_a_response: str = (
+        f"Eu, o node_a recebi: {current_user_message_length} carácteres"
+    )
 
     ai_message: AIMessage = AIMessage(content=node_a_response)
 
@@ -44,7 +47,9 @@ def node_b(state: State) -> dict:
 
     print("[Node B] Processing...")
 
-    node_b_response: str = f"Eu, o node_b recebi: {current_user_message_length} carácteres"
+    node_b_response: str = (
+        f"Eu, o node_b recebi: {current_user_message_length} carácteres"
+    )
 
     ai_message: AIMessage = AIMessage(content=node_b_response)
 
@@ -53,7 +58,9 @@ def node_b(state: State) -> dict:
     }
 
 
-def node_router_conditional_edge(state: State) -> Literal[
+def node_router_conditional_edge(
+    state: State,
+) -> Literal[
     "node_a",
     "node_b",
 ]:
@@ -80,6 +87,8 @@ checkpointer: MemorySaver = MemorySaver()
 
 graph_compiled: CompiledStateGraph = graph.compile(checkpointer=checkpointer)
 
+thread_id: str = str(uuid.uuid4())
+
 while True:
     user_message: str = input("You: ")
 
@@ -92,7 +101,7 @@ while True:
         },
         config=RunnableConfig(
             configurable={
-                "thread_id": 123,
+                "thread_id": thread_id,
             },
         ),
     )
