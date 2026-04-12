@@ -1,21 +1,24 @@
 from typing import TypedDict, Literal
 
+from langchain_core.messages import BaseMessage, HumanMessage
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 
 class State(TypedDict):
-    user_message: str
     user_message_length: int
+    messages: list[BaseMessage]
 
 
 def node_router(state: State) -> dict:
-    current_user_message: str = state["user_message"]
-    current_user_message_length: int = len(current_user_message)
+    current_user_message: BaseMessage = state["messages"][-1]
+    current_user_message_length: int = len(current_user_message.content)
 
     print(f"[Router] User Message Length: {current_user_message_length}")
 
-    return {"user_message_length": current_user_message_length}
+    return {
+        "user_message_length": current_user_message_length,
+    }
 
 
 def node_a(state: State) -> None:
@@ -51,12 +54,18 @@ graph.add_edge(start_key="node_b", end_key=END)
 
 graph_compiled: CompiledStateGraph = graph.compile()
 
+messages: list[BaseMessage] = []
+
 while True:
     user_message: str = input("You: ")
 
+    human_message: HumanMessage = HumanMessage(content=user_message)
+
+    messages.append(human_message)
+
     initial_state: State = {
-        "user_message": user_message,
         "user_message_length": 0,
+        "messages": messages,
     }
 
     graph_result: State = graph_compiled.invoke(input=initial_state)  # type: ignore

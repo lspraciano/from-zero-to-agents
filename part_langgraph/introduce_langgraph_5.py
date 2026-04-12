@@ -5,17 +5,19 @@ from langgraph.graph.state import CompiledStateGraph
 
 
 class State(TypedDict):
-    user_message: str
     user_message_length: int
+    messages: list[str]
 
 
 def node_router(state: State) -> dict:
-    current_user_message: str = state["user_message"]
+    current_user_message: str = state["messages"][-1]
     current_user_message_length: int = len(current_user_message)
 
     print(f"[Router] User Message Length: {current_user_message_length}")
 
-    return {"user_message_length": current_user_message_length}
+    return {
+        "user_message_length": current_user_message_length,
+    }
 
 
 def node_a(state: State) -> None:
@@ -51,12 +53,16 @@ graph.add_edge(start_key="node_b", end_key=END)
 
 graph_compiled: CompiledStateGraph = graph.compile()
 
+messages: list[str] = []
+
 while True:
     user_message: str = input("You: ")
 
+    messages.append(user_message)
+
     initial_state: State = {
-        "user_message": user_message,
         "user_message_length": 0,
+        "messages": messages,
     }
 
     graph_result: State = graph_compiled.invoke(input=initial_state)  # type: ignore

@@ -1,164 +1,73 @@
-import os
-from typing import TypedDict, Literal, Annotated
+from typing import TypedDict, Literal
 
-from dotenv import load_dotenv
-from langchain.agents import create_agent
-from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
-from langchain_core.tools import tool
-from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
-from langgraph.graph.message import add_messages
 from langgraph.graph.state import CompiledStateGraph
-from pydantic import BaseModel, Field
-
-load_dotenv()
-
-model: str = "gpt-4.1-mini"
-
-llm: ChatOpenAI = ChatOpenAI(
-    model=model,
-    api_key=os.getenv("OPENAI_API_KEY"),
-)
-
-
-# --- Tools ---
-
-
-@tool
-def calculator_tool(expression: str) -> float:
-    """Calcula uma expressão matemática e retorna o resultado."""
-    return eval(expression)
-
-
-# --- State ---
 
 
 class State(TypedDict):
-    messages: Annotated[list[BaseMessage], add_messages]
-    agent: str
-    response: str
+    user_message: str
+    user_message_length: int
+    messages: list[str]
 
 
-# --- Router ---
+def node_router(state: State) -> dict:
+    current_user_message: str = state["user_message"]
+    current_user_message_length: int = len(current_user_message)
 
-
-class RouterResponse(BaseModel):
-    agent: Literal["math", "general"] = Field(
-        description="Agente para o qual a mensagem deve ser roteada"
-    )
-
-
-router_agent: CompiledStateGraph = create_agent(
-    model=llm,
-    tools=[],
-    system_prompt="""
-Você é um roteador de mensagens. Analise o histórico da conversa e a mensagem atual do usuário para decidir para qual agente direcionar.
-
-- "math": para perguntas matemáticas ou que envolvam cálculos
-- "general": para perguntas de conhecimento geral
-
-Considere o contexto completo da conversa para entender a real intenção do usuário.
-""",
-    response_format=RouterResponse,
-)
-
-
-# --- Math Agent ---
-
-
-class MathResponse(BaseModel):
-    response: str = Field(description="Resposta final ao usuário")
-
-
-math_agent: CompiledStateGraph = create_agent(
-    model=llm,
-    tools=[calculator_tool],
-    system_prompt="Você é um assistente especialista em matemática.",
-    response_format=MathResponse,
-)
-
-
-# --- General Agent ---
-
-
-class GeneralResponse(BaseModel):
-    response: str = Field(description="Resposta final ao usuário")
-
-
-general_agent: CompiledStateGraph = create_agent(
-    model=llm,
-    tools=[],
-    system_prompt="Você é um assistente de conhecimento geral.",
-    response_format=GeneralResponse,
-)
-
-
-# --- Nodes ---
-
-
-def router_node(state: State) -> dict:
-    result: dict = router_agent.invoke(input={"messages": state["messages"]})
-
-    router_response: RouterResponse = result["structured_response"]
-
-    print(f"[Router] → {router_response.agent}")
-
-    return {"agent": router_response.agent}
-
-
-def math_node(state: State) -> dict:
-    result: dict = math_agent.invoke(input={"messages": state["messages"]})
-
-    response: str = result["structured_response"].response
+    print(f"[Router] User Message Length: {current_user_message_length}")
 
     return {
-        "messages": [AIMessage(content=response)],
-        "response": response,
+        "user_message_length": current_user_message_length,
     }
 
 
-def general_node(state: State) -> dict:
-    result: dict = general_agent.invoke(input={"messages": state["messages"]})
-
-    response: str = result["structured_response"].response
-
-    return {
-        "messages": [AIMessage(content=response)],
-        "response": response,
-    }
+def node_a(state: State) -> None:
+    print("[Node A] Processing...")
 
 
-def decide_agent(state: State) -> str:
-    return state["agent"]
+def node_b(state: State) -> None:
+    print("[Node B] Processing...")
 
 
-# --- Graph ---
+def node_router_conditional_edge(state: State) -> Literal[
+    "node_a",
+    "node_b",
+]:
+    if state["user_message_length"] > 10:
+        return "node_a"
+
+    return "node_b"
+
 
 graph: StateGraph = StateGraph(State)  # type: ignore
 
-graph.add_node(node="router", action=router_node)  # type: ignore
-graph.add_node(node="math", action=math_node)  # type: ignore
-graph.add_node(node="general", action=general_node)  # type: ignore
+graph.add_node(node="node_router", action=node_router)  # type: ignore
+graph.add_node(node="node_a", action=node_a)  # type: ignore
+graph.add_node(node="node_b", action=node_b)  # type: ignore
 
-graph.add_edge(start_key=START, end_key="router")
+graph.add_edge(start_key=START, end_key="node_router")
 
-graph.add_conditional_edges(
-    source="router",
-    path=decide_agent,
-    path_map={
-        "math": "math",
-        "general": "general",
-    },
-)
+graph.add_conditional_edges(source="node_router", path=node_router_conditional_edge)
 
-graph.add_edge(start_key="math", end_key=END)
-graph.add_edge(start_key="general", end_key=END)
+graph.add_edge(start_key="node_a", end_key=END)
+graph.add_edge(start_key="node_b", end_key=END)
 
-app: CompiledStateGraph = graph.compile()
+graph_compiled: CompiledStateGraph = graph.compile()
+
+messages: list[str] = []
 
 while True:
     user_message: str = input("You: ")
 
-    result: dict = app.invoke(input={"messages": [HumanMessage(content=user_message)]})  # type: ignore
+    messages.append(user_message)
 
-    print(f"AI response: {result['response']}")
+    initial_state: State = {
+        "user_message": user_message,
+        "user_message_length": 0,
+        "messages": messages,
+    }
+
+    graph_result: State = graph_compiled.invoke(input=initial_state)  # type: ignore
+
+    print(f"[Graph Result]: {graph_result}")
+    print("-" * 100)

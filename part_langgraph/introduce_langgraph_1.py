@@ -1,68 +1,68 @@
 import random
-from typing import TypedDict
+import time
+from typing import TypedDict, Literal
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 
 class State(TypedDict):
-    message: str
     destination: str
 
 
-def router(state: State) -> dict:
-    chosen_destination: str = random.choice(seq=["A", "B", "C"])
+def node_router(state: State) -> dict:
+    chosen_destination: str = random.choice(
+        seq=[
+            "node_a",
+            "node_b",
+        ]
+    )
 
     print(f"[Router] Directing to node: {chosen_destination}")
 
     return {"destination": chosen_destination}
 
 
-def node_a(state: State) -> dict:
+def node_a(state: State) -> None:
     print("[Node A] Processing...")
 
-    return {"message": "Handled by node A"}
 
-
-def node_b(state: State) -> dict:
+def node_b(state: State) -> None:
     print("[Node B] Processing...")
 
-    return {"message": "Handled by node B"}
 
+def node_router_conditional_edge(state: State) -> Literal[
+    "node_a",
+    "node_b",
+]:
+    current_destination: str = state["destination"]
 
-def node_c(state: State) -> dict:
-    print("[Node C] Processing...")
-
-    return {"message": "Handled by node C"}
-
-
-def decide_destination(state: State) -> str:
-    return state["destination"]
+    return current_destination  # type: ignore
 
 
 graph: StateGraph = StateGraph(State)  # type: ignore
 
-graph.add_node(node="router", action=router)  # type: ignore
-graph.add_node(node="A", action=node_a)  # type: ignore
-graph.add_node(node="B", action=node_b)  # type: ignore
-graph.add_node(node="C", action=node_c)  # type: ignore
+graph.add_node(node="node_router", action=node_router)  # type: ignore
+graph.add_node(node="node_a", action=node_a)  # type: ignore
+graph.add_node(node="node_b", action=node_b)  # type: ignore
 
-graph.add_edge(start_key=START, end_key="router")
+graph.add_edge(start_key=START, end_key="node_router")
 
-graph.add_conditional_edges(
-    source="router",
-    path=decide_destination,
-    path_map={"A": "A", "B": "B", "C": "C"},
-)
+graph.add_conditional_edges(source="node_router", path=node_router_conditional_edge)
 
-graph.add_edge(start_key="A", end_key=END)
-graph.add_edge(start_key="B", end_key=END)
-graph.add_edge(start_key="C", end_key=END)
+graph.add_edge(start_key="node_a", end_key=END)
+graph.add_edge(start_key="node_b", end_key=END)
 
-app: CompiledStateGraph = graph.compile()
+graph_compiled: CompiledStateGraph = graph.compile()
 
-initial_state: State = {"message": "Hello!", "destination": ""}
+while True:
+    initial_state: State = {
+        "destination": "",
+    }
 
-result: dict = app.invoke(input=initial_state)  # type: ignore
+    graph_result: State = graph_compiled.invoke(input=initial_state)  # type: ignore
 
-print(f"\nFinal result: {result['message']}")
+    print(f"[Graph Result]: {graph_result}")
+    print("-" * 100)
+
+    time.sleep(3)
