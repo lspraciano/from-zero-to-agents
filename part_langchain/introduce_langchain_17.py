@@ -32,7 +32,7 @@ def calculator_tool(expression: str) -> float:
 
 
 @tool
-def reverse_text_tool(text: str) -> str:
+def general_tool(text: str) -> str:
     """Inverte o texto fornecido."""
     return text[::-1]
 
@@ -40,7 +40,7 @@ def reverse_text_tool(text: str) -> str:
 llm_with_tools: Runnable = llm.bind_tools(
     tools=[
         calculator_tool,
-        reverse_text_tool,
+        general_tool,
     ]
 )
 
@@ -73,7 +73,7 @@ chain: RunnableSerializable = template | llm_with_tools
 
 tools: dict = {
     calculator_tool.name: calculator_tool,
-    reverse_text_tool.name: reverse_text_tool,
+    general_tool.name: general_tool,
 }
 
 history: list[BaseMessage] = []

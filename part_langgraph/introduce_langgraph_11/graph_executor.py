@@ -3,11 +3,11 @@ import uuid
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 
-from part_langgraph.introduce_langgraph_10.checkpointers.memory_saver_checkpointer import (
+from part_langgraph.introduce_langgraph_11.checkpointers.memory_saver_checkpointer import (
     memory_saver_checkpointer,
 )
-from part_langgraph.introduce_langgraph_10.graphs.graph_1 import graph_compiled
-from part_langgraph.introduce_langgraph_10.states.state import State
+from part_langgraph.introduce_langgraph_11.graphs.graph_1 import graph_compiled
+from part_langgraph.introduce_langgraph_11.states.state import State
 
 graph_compiled.checkpointer = memory_saver_checkpointer
 
@@ -23,7 +23,6 @@ while True:
 
     graph_result: State = graph_compiled.invoke(
         input={  # type: ignore
-            "user_message_length": 0,
             "messages": [human_message],
         },
         config=RunnableConfig(

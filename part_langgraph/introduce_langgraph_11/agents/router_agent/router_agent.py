@@ -1,13 +1,14 @@
-from langchain_core.runnables import RunnableSerializable
+from langchain.agents import create_agent
+from langgraph.graph.state import CompiledStateGraph
 
-from part_langchain.introduce_langchain_20.agents.router_agent.router_agent_parser import (
-    router_agent_parser,
+from part_langgraph.introduce_langgraph_11.agents.router_agent.router_agent_response_format import (
+    RouterAgentResponseFormat,
 )
-from part_langchain.introduce_langchain_20.agents.router_agent.router_agent_template import (
-    router_agent_template,
-)
-from part_langchain.introduce_langchain_20.llm.llm import llm
+from part_langgraph.introduce_langgraph_11.llm_models.llm_models import get_llm_model
 
-router_agent_chain: RunnableSerializable = (
-    router_agent_template | llm | router_agent_parser
+router_agent: CompiledStateGraph = create_agent(
+    name="router_agent",
+    model=get_llm_model(model_name="gpt-4.1-mini"),
+    response_format=RouterAgentResponseFormat,
+    tools=[],
 )

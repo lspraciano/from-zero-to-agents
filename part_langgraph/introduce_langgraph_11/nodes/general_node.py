@@ -1,19 +1,30 @@
-from langchain_core.messages import BaseMessage, AIMessage
+from langchain_core.messages import AIMessage
+from langchain_core.prompt_values import PromptValue
 
-from part_langgraph.introduce_langgraph_10.states.state import State
+from part_langgraph.introduce_langgraph_11.agents.general_agent.general_agent import (
+    general_agent,
+)
+from part_langgraph.introduce_langgraph_11.agents.general_agent.general_agent_response_format import (
+    GeneralAgentResponseFormat,
+)
+from part_langgraph.introduce_langgraph_11.agents.general_agent.general_agent_template import (
+    general_agent_template,
+)
+from part_langgraph.introduce_langgraph_11.states.state import State
 
 
-def node_a(state: State) -> dict:
-    current_user_message: BaseMessage = state["messages"][-1]
-    current_user_message_length: int = len(current_user_message.content)
-
-    print("[Node A] Processing...")
-
-    node_a_response: str = (
-        f"Eu, o node_a recebi: {current_user_message_length} carácteres"
+def general_node(state: State) -> dict:
+    general_input: PromptValue = general_agent_template.invoke(
+        input={
+            "history": state["messages"],
+        },
     )
 
-    ai_message: AIMessage = AIMessage(content=node_a_response)
+    general_result: dict = general_agent.invoke(input=general_input)
+
+    general_response: GeneralAgentResponseFormat = general_result["structured_response"]
+
+    ai_message: AIMessage = AIMessage(content=general_response.response)
 
     return {
         "messages": [ai_message],

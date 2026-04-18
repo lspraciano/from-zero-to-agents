@@ -1,5 +1,5 @@
 from pydantic import BaseModel
 
 
-class GeneralAgentResponseFormat(BaseModel):
+class ReverseTextAgentResponseFormat(BaseModel):
     response: str

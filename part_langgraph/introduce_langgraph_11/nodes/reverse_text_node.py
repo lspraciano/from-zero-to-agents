@@ -1,19 +1,32 @@
-from langchain_core.messages import BaseMessage, AIMessage
+from langchain_core.messages import AIMessage
+from langchain_core.prompt_values import PromptValue
 
-from part_langgraph.introduce_langgraph_10.states.state import State
+from part_langgraph.introduce_langgraph_11.agents.reverse_text_agent.reverse_text_agent import (
+    reverse_text_agent,
+)
+from part_langgraph.introduce_langgraph_11.agents.reverse_text_agent.reverse_text_agent_response_format import (
+    ReverseTextAgentResponseFormat,
+)
+from part_langgraph.introduce_langgraph_11.agents.reverse_text_agent.reverse_text_agent_template import (
+    reverse_text_agent_template,
+)
+from part_langgraph.introduce_langgraph_11.states.state import State
 
 
-def node_b(state: State) -> dict:
-    current_user_message: BaseMessage = state["messages"][-1]
-    current_user_message_length: int = len(current_user_message.content)
-
-    print("[Node B] Processing...")
-
-    node_b_response: str = (
-        f"Eu, o node_b recebi: {current_user_message_length} carácteres"
+def reverse_text_node(state: State) -> dict:
+    reverse_text_input: PromptValue = reverse_text_agent_template.invoke(
+        input={
+            "history": state["messages"],
+        },
     )
 
-    ai_message: AIMessage = AIMessage(content=node_b_response)
+    reverse_text_result: dict = reverse_text_agent.invoke(input=reverse_text_input)
+
+    reverse_text_response: ReverseTextAgentResponseFormat = reverse_text_result[
+        "structured_response"
+    ]
+
+    ai_message: AIMessage = AIMessage(content=reverse_text_response.response)
 
     return {
         "messages": [ai_message],

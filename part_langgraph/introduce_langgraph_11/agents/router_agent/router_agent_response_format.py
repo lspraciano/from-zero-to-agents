@@ -4,6 +4,9 @@ from pydantic import BaseModel, Field
 
 
 class RouterAgentResponseFormat(BaseModel):
-    agent: Literal["bio", "general"] = Field(
-        description="Agente para o qual a mensagem deve ser roteada"
+    router_destination: Literal[
+        "reverse_text_node",
+        "general_node",
+    ] = Field(
+        description="Agente de destino",
     )

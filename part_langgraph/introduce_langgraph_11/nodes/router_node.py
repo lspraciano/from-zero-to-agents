@@ -1,14 +1,30 @@
-from langchain_core.messages import BaseMessage
+from langchain_core.prompt_values import PromptValue
 
-from part_langgraph.introduce_langgraph_10.states.state import State
+from part_langgraph.introduce_langgraph_11.agents.router_agent.router_agent import (
+    router_agent,
+)
+from part_langgraph.introduce_langgraph_11.agents.router_agent.router_agent_response_format import (
+    RouterAgentResponseFormat,
+)
+from part_langgraph.introduce_langgraph_11.agents.router_agent.router_agent_template import (
+    router_agent_template,
+)
+from part_langgraph.introduce_langgraph_11.states.state import State
 
 
-def node_router(state: State) -> dict:
-    current_user_message: BaseMessage = state["messages"][-1]
-    current_user_message_length: int = len(current_user_message.content)
+def router_node(state: State) -> dict:
+    router_agent_input: PromptValue = router_agent_template.invoke(
+        input={
+            "history": state["messages"],
+        },
+    )
 
-    print(f"[Router] User Message Length: {current_user_message_length}")
+    router_agent_result: dict = router_agent.invoke(input=router_agent_input)
+
+    router_agent_response: RouterAgentResponseFormat = router_agent_result[
+        "structured_response"
+    ]
 
     return {
-        "user_message_length": current_user_message_length,
+        "router_destination": router_agent_response.router_destination,
     }
