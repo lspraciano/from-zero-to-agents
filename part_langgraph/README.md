@@ -1,6 +1,6 @@
 # LangGraph — Do Zero aos Agentes
 
-Esta pasta contém uma sequência progressiva de exemplos em Python que introduzem o **LangGraph** partindo do básico (criar um grafo e invocar nós) até a construção de um sistema multi-agente com LLMs reais, ferramentas, persistência de memória e roteamento dinâmico via `Command`. Cada módulo acrescenta um conceito novo ao anterior, formando uma trilha de aprendizado guiada.
+Esta pasta contém uma sequência progressiva de exemplos em Python que introduzem o **LangGraph** partindo do básico (criar um grafo e invocar nós) até a construção de um sistema multi-agente com LLMs reais, ferramentas, persistência de memória, roteamento dinâmico via `Command` e **RAG**. Cada módulo acrescenta um conceito novo ao anterior, formando uma trilha de aprendizado guiada.
 
 ---
 
@@ -60,18 +60,31 @@ part_langgraph/
 │       ├── general_agent/
 │       └── reverse_text_agent/
 │
-└── introduce_langgraph_12/     # Roteamento dinâmico com Command API
+├── introduce_langgraph_12/     # Roteamento dinâmico com Command API
+│   ├── graph_executor.py
+│   ├── states/
+│   ├── graphs/
+│   ├── checkpointers/
+│   ├── llm_models/
+│   ├── tools/
+│   │   └── invert_text_tool.py
+│   └── agents/
+│       ├── router_agent/
+│       ├── general_agent/
+│       └── reverse_text_agent/
+│
+└── introduce_langgraph_13/     # Introdução a RAG (consulta à PokeAPI)
     ├── graph_executor.py
     ├── states/
     ├── graphs/
     ├── checkpointers/
     ├── llm_models/
     ├── tools/
-    │   └── invert_text_tool.py
+    │   └── pokemon_tool.py
     └── agents/
         ├── router_agent/
         ├── general_agent/
-        └── reverse_text_agent/
+        └── pokemon_agent/
 ```
 
 ---
@@ -125,6 +138,12 @@ part_langgraph/
 |---|---|
 | `introduce_langgraph_12/` | Substitui `add_conditional_edges` pela **`Command` API**: cada nó retorna `Command(goto=..., update=...)`, decidindo o próximo destino e atualizando o estado em uma única operação. O roteamento sai das arestas e passa a viver dentro dos nós — por isso a pasta `edges/` desaparece. Os agentes encerram o fluxo via `goto="__end__"` em vez de `add_edge(..., END)` |
 
+### Bloco 8 — Introdução a RAG (pasta 13)
+
+| Artefato | Descrição |
+|---|---|
+| `introduce_langgraph_13/` | Primeira aplicação do padrão **RAG (Retrieval-Augmented Generation)**: o agente recupera informação de uma fonte externa (PokeAPI) e injeta o resultado no contexto do LLM antes da geração. Mostra que RAG **não precisa ser vetorial** — o ciclo `retrieve → augment → generate` se aplica a qualquer fonte (API REST, SQL, busca lexical, vector store). Substitui o `reverse_text_agent` pelo `pokemon_agent`, especialista em Pokémon |
+
 ---
 
 ## Como Executar
@@ -135,15 +154,16 @@ Execute a partir da raiz do projeto para que as importações relativas funcione
 # Arquivos simples (módulos 1–9)
 python -m part_langgraph.introduce_langgraph_1
 
-# Versões em pacote (módulos 10, 11 e 12)
+# Versões em pacote (módulos 10, 11, 12 e 13)
 python -m part_langgraph.introduce_langgraph_10.graph_executor
 python -m part_langgraph.introduce_langgraph_11.graph_executor
 python -m part_langgraph.introduce_langgraph_12.graph_executor
+python -m part_langgraph.introduce_langgraph_13.graph_executor
 ```
 
 > Os módulos 2 em diante pedem input pelo terminal. Digite sua mensagem e pressione Enter.
 
-> ⚠️ Os módulos **11 e 12** fazem chamadas reais à API da OpenAI e geram custo por execução.
+> ⚠️ Os módulos **11, 12 e 13** fazem chamadas reais à API da OpenAI e geram custo por execução. O módulo **13** também consulta a [PokeAPI](https://pokeapi.co/) (pública e gratuita).
 
 ---
 
@@ -155,4 +175,4 @@ Os módulos com chamadas a LLM usam o modelo `gpt-4.1-mini` da OpenAI via `ChatO
 
 ## Próximo Passo
 
-Com o roteamento dinâmico via `Command` consolidado, o próximo módulo evolui para agentes com múltiplas ferramentas externas e fluxos de decisão mais complexos.
+Com o padrão RAG introduzido via API REST, o próximo módulo evolui para **RAG vetorial**: indexação de texto livre com embeddings, armazenamento em vector store e busca por similaridade semântica — mostrando outra forma de implementar o mesmo ciclo `retrieve → augment → generate`.

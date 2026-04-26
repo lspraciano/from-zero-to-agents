@@ -31,7 +31,7 @@ def reverse_text_agent(state: State) -> Command:
         },
     )
 
-    reverse_text_result: dict = current_agent.invoke(input=reverse_text_input)
+    reverse_text_result: dict = _reverse_text_agent.invoke(input=reverse_text_input)
 
     reverse_text_response: ReverseTextAgentResponseFormat = reverse_text_result[
         "structured_response"
