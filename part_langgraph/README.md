@@ -1,6 +1,6 @@
 # LangGraph — Do Zero aos Agentes
 
-Esta pasta contém uma sequência progressiva de exemplos em Python que introduzem o **LangGraph** partindo do básico (criar um grafo e invocar nós) até a construção de um sistema multi-agente com LLMs reais, ferramentas e persistência de memória. Cada módulo acrescenta um conceito novo ao anterior, formando uma trilha de aprendizado guiada.
+Esta pasta contém uma sequência progressiva de exemplos em Python que introduzem o **LangGraph** partindo do básico (criar um grafo e invocar nós) até a construção de um sistema multi-agente com LLMs reais, ferramentas, persistência de memória e roteamento dinâmico via `Command`. Cada módulo acrescenta um conceito novo ao anterior, formando uma trilha de aprendizado guiada.
 
 ---
 
@@ -45,11 +45,24 @@ part_langgraph/
 │   ├── graphs/
 │   └── checkpointers/
 │
-└── introduce_langgraph_11/     # LLMs reais, agentes e ferramentas nos nós
+├── introduce_langgraph_11/     # LLMs reais, agentes e ferramentas nos nós
+│   ├── graph_executor.py
+│   ├── states/
+│   ├── nodes/
+│   ├── edges/
+│   ├── graphs/
+│   ├── checkpointers/
+│   ├── llm_models/
+│   ├── tools/
+│   │   └── invert_text_tool.py
+│   └── agents/
+│       ├── router_agent/
+│       ├── general_agent/
+│       └── reverse_text_agent/
+│
+└── introduce_langgraph_12/     # Roteamento dinâmico com Command API
     ├── graph_executor.py
     ├── states/
-    ├── nodes/
-    ├── edges/
     ├── graphs/
     ├── checkpointers/
     ├── llm_models/
@@ -106,6 +119,12 @@ part_langgraph/
 |---|---|
 | `introduce_langgraph_11/` | Primeiro módulo com **chamadas reais a LLMs** dentro dos nós. O roteamento é feito por **intenção** (via LLM) em vez de heurística. Introduz **`@tool`**, **`create_agent`** e **saída estruturada com Pydantic** (`response_format`) |
 
+### Bloco 7 — Roteamento Dinâmico com Command API (pasta 12)
+
+| Artefato | Descrição |
+|---|---|
+| `introduce_langgraph_12/` | Substitui `add_conditional_edges` pela **`Command` API**: cada nó retorna `Command(goto=..., update=...)`, decidindo o próximo destino e atualizando o estado em uma única operação. O roteamento sai das arestas e passa a viver dentro dos nós — por isso a pasta `edges/` desaparece. Os agentes encerram o fluxo via `goto="__end__"` em vez de `add_edge(..., END)` |
+
 ---
 
 ## Como Executar
@@ -116,12 +135,15 @@ Execute a partir da raiz do projeto para que as importações relativas funcione
 # Arquivos simples (módulos 1–9)
 python -m part_langgraph.introduce_langgraph_1
 
-# Versões em pacote (módulos 10 e 11)
+# Versões em pacote (módulos 10, 11 e 12)
 python -m part_langgraph.introduce_langgraph_10.graph_executor
 python -m part_langgraph.introduce_langgraph_11.graph_executor
+python -m part_langgraph.introduce_langgraph_12.graph_executor
 ```
 
 > Os módulos 2 em diante pedem input pelo terminal. Digite sua mensagem e pressione Enter.
+
+> ⚠️ Os módulos **11 e 12** fazem chamadas reais à API da OpenAI e geram custo por execução.
 
 ---
 
@@ -133,4 +155,4 @@ Os módulos com chamadas a LLM usam o modelo `gpt-4.1-mini` da OpenAI via `ChatO
 
 ## Próximo Passo
 
-Com os fundamentos do LangGraph consolidados, o próximo módulo evolui para agentes com múltiplas ferramentas externas e fluxos de decisão mais complexos.
+Com o roteamento dinâmico via `Command` consolidado, o próximo módulo evolui para agentes com múltiplas ferramentas externas e fluxos de decisão mais complexos.
