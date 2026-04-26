@@ -28,8 +28,6 @@ def pokemon_tool(name: str) -> dict:
 
     data: dict = response.json()
 
-    print(data)
-
     types: list[str] = []
 
     for type_entry in data["types"]:
