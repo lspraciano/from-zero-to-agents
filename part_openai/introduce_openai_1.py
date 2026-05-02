@@ -21,7 +21,7 @@ messages: list[dict] = [
     {"role": "user", "content": user_message},
 ]
 
-response: ChatCompletion = client.chat.completions.create(
+response: ChatCompletion = client.chat.completions.create(  # type: ignore
     model=model,
     messages=messages,  # type: ignore
 )
