@@ -9,6 +9,7 @@ dependencies = [
     "langchain>=1.2.15",
     "langchain-community>=0.4.1",
     "langchain-openai>=1.1.12",
+    "langfuse>=4.11.0",
     "langgraph>=1.1.6",
     "openai>=2.31.0",
     "python-dotenv>=1.2.2",

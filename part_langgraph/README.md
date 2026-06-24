@@ -86,26 +86,45 @@ part_langgraph/
 │       ├── general_agent/
 │       └── pokemon_agent/
 │
-└── introduce_langgraph_14/     # RAG vetorial com embeddings e vector store
+├── introduce_langgraph_14/     # RAG vetorial com embeddings e vector store
+│   ├── graph_executor.py
+│   ├── states/
+│   ├── graphs/
+│   ├── checkpointers/
+│   ├── llm_models/
+│   ├── embeddings/
+│   │   └── embeddings.py
+│   ├── vector_stores/
+│   │   └── knowledge_vector_store.py
+│   ├── pipelines/
+│   │   └── ingestion_pipeline.py
+│   ├── documents/
+│   │   └── knowledge_base.txt
+│   ├── tools/
+│   │   └── knowledge_search_tool.py
+│   └── agents/
+│       ├── router_agent/
+│       ├── general_agent/
+│       └── knowledge_agent/
+│
+├── introduce_langgraph_15/     # Observabilidade com Langfuse
+│   ├── graph_executor.py
+│   ├── observability/
+│   │   └── langfuse_handler.py
+│   ├── (mesma estrutura do módulo 14)
+│   └── agents/
+│       ├── router_agent/
+│       ├── general_agent/
+│       └── knowledge_agent/
+│
+└── introduce_langgraph_16/     # Evals do router
     ├── graph_executor.py
-    ├── states/
-    ├── graphs/
-    ├── checkpointers/
-    ├── llm_models/
-    ├── embeddings/
-    │   └── embeddings.py
-    ├── vector_stores/
-    │   └── knowledge_vector_store.py
-    ├── pipelines/
-    │   └── ingestion_pipeline.py
-    ├── documents/
-    │   └── knowledge_base.txt
-    ├── tools/
-    │   └── knowledge_search_tool.py
-    └── agents/
-        ├── router_agent/
-        ├── general_agent/
-        └── knowledge_agent/
+    ├── evals/
+    │   ├── eval_cases.py       # lista de casos com input e destino esperado
+    │   └── router_eval.py      # executa os casos e imprime PASS/FAIL
+    ├── observability/
+    │   └── langfuse_handler.py
+    └── (mesma estrutura do módulo 15)
 ```
 
 ---
@@ -171,6 +190,18 @@ part_langgraph/
 |---|---|
 | `introduce_langgraph_14/` | Evolução do RAG para a forma vetorial: um arquivo `.txt` é carregado, dividido em chunks (`RecursiveCharacterTextSplitter`), transformado em vetores (`OpenAIEmbeddings`) e indexado em um `InMemoryVectorStore`. A busca passa a ser por **similaridade semântica** em vez de chamada a API externa. Introduz o pipeline de ingestão com os 4 passos canônicos — **Load → Split → Embed → Index** — e uma `knowledge_search_tool` que executa o retrieve dentro do agente especialista |
 
+### Bloco 10 — Observabilidade com Langfuse (pasta 15)
+
+| Artefato | Descrição |
+|---|---|
+| `introduce_langgraph_15/` | Adiciona **observabilidade** ao sistema via [Langfuse](https://langfuse.com): o cliente é inicializado uma vez como singleton (`Langfuse(...)`) e um `CallbackHandler` é criado na pasta `observability/` e passado em `callbacks=[...]` no `RunnableConfig` do `graph.invoke()`. O LangChain propaga os callbacks automaticamente para todos os sub-agentes via `ContextVar` — nenhuma mudança é necessária nos nós. Os traces do router e dos agentes especialistas aparecem vinculados no mesmo trace no dashboard |
+
+### Bloco 11 — Avaliação do Router (pasta 16)
+
+| Artefato | Descrição |
+|---|---|
+| `introduce_langgraph_16/` | Introduz **evals**: um conjunto de casos de teste (`eval_cases.py`) define pares de `(mensagem, destino_esperado)` para o router. O script `router_eval.py` invoca o grafo para cada caso, compara o `router_destination` retornado com o esperado e imprime um relatório `PASS/FAIL` com percentual de acerto. Os traces de cada caso são enviados ao Langfuse, permitindo inspecionar os erros diretamente no dashboard |
+
 ---
 
 ## Como Executar
@@ -181,27 +212,26 @@ Execute a partir da raiz do projeto para que as importações relativas funcione
 # Arquivos simples (módulos 1–9)
 python -m part_langgraph.introduce_langgraph_1
 
-# Versões em pacote (módulos 10–14)
+# Versões em pacote (módulos 10–16)
 python -m part_langgraph.introduce_langgraph_10.graph_executor
 python -m part_langgraph.introduce_langgraph_11.graph_executor
 python -m part_langgraph.introduce_langgraph_12.graph_executor
 python -m part_langgraph.introduce_langgraph_13.graph_executor
 python -m part_langgraph.introduce_langgraph_14.graph_executor
+python -m part_langgraph.introduce_langgraph_15.graph_executor
+python -m part_langgraph.introduce_langgraph_16.graph_executor
+
+# Rodar os evals do router (módulo 16)
+python -m part_langgraph.introduce_langgraph_16.evals.router_eval
 ```
 
 > Os módulos 2 em diante pedem input pelo terminal. Digite sua mensagem e pressione Enter.
 
-> ⚠️ Os módulos **11, 12, 13 e 14** fazem chamadas reais à API da OpenAI e geram custo por execução. O módulo **13** também consulta a [PokeAPI](https://pokeapi.co/) (pública e gratuita). O módulo **14** usa o modelo `text-embedding-3-small` para gerar embeddings.
-
----
-
-## Modelo Utilizado
-
-Os módulos com chamadas a LLM usam o modelo `gpt-4.1-mini` da OpenAI via `ChatOpenAI`.
+> ⚠️ Os módulos **11–16** fazem chamadas reais à API da OpenAI e geram custo por execução. O módulo **13** também consulta a [PokeAPI](https://pokeapi.co/) (pública e gratuita). Os módulos **14, 15 e 16** usam o modelo `text-embedding-3-small` para gerar embeddings. Os módulos **15 e 16** requerem uma conta no [Langfuse](https://cloud.langfuse.com) com as chaves configuradas no `.env`.
 
 ---
 
 ## Modelos Utilizados
 
 - Chat: `gpt-4.1-mini` via `ChatOpenAI`
-- Embeddings: `text-embedding-3-small` via `OpenAIEmbeddings` (módulo 14)
+- Embeddings: `text-embedding-3-small` via `OpenAIEmbeddings` (módulos 14, 15 e 16)

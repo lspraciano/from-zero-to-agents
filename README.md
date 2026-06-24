@@ -14,7 +14,7 @@ A ordem importa. Cada parte assume o conhecimento da anterior:
 |---|---|---|---|
 | 1 | [`part_openai/`](./part_openai/README.md) | Primeiro contato com a API da OpenAI via **SDK oficial**, sem framework. Mostra o fluxo cru: cliente, mensagens como `list[dict]`, `chat.completions.create` | [Ler ›](./part_openai/README.md) |
 | 2 | [`part_langchain/`](./part_langchain/README.md) | Abstrações do **LangChain**: tipos de mensagem, LCEL, templates, output parsers, tools, memória e um sistema multi-agente refatorado em duas etapas | [Ler ›](./part_langchain/README.md) |
-| 3 | [`part_langgraph/`](./part_langgraph/README.md) | Construção de grafos com **LangGraph**: estado, reducers, persistência via checkpoint, agentes com LLMs reais, roteamento dinâmico com a `Command` API, RAG via API REST e **RAG vetorial** com embeddings e vector store | [Ler ›](./part_langgraph/README.md) |
+| 3 | [`part_langgraph/`](./part_langgraph/README.md) | Construção de grafos com **LangGraph**: estado, reducers, persistência via checkpoint, agentes com LLMs reais, roteamento dinâmico com a `Command` API, RAG vetorial com embeddings e vector store, **observabilidade com Langfuse** e **evals do router** | [Ler ›](./part_langgraph/README.md) |
 
 Cada pasta tem um README próprio detalhando os exemplos, conceitos introduzidos e como executar.
 
@@ -57,6 +57,11 @@ Edite o `.env`:
 
 ```
 OPENAI_API_KEY=sk-...
+
+# Necessário apenas para os módulos 15 e 16 (Langfuse)
+LANGFUSE_PUBLIC_KEY=...
+LANGFUSE_SECRET_KEY=...
+LANGFUSE_HOST=https://cloud.langfuse.com
 ```
 
 ---
@@ -95,7 +100,7 @@ python -m part_langgraph.introduce_langgraph_1
 
 Os comandos completos de cada etapa estão documentados no README correspondente.
 
-> ⚠️ A maioria dos exemplos faz chamadas reais à API da OpenAI e gera custo por execução. Os módulos finais do LangGraph também consultam APIs públicas externas (ex: PokeAPI) e usam o modelo `text-embedding-3-small` para RAG vetorial.
+> ⚠️ A maioria dos exemplos faz chamadas reais à API da OpenAI e gera custo por execução. Os módulos finais do LangGraph também consultam APIs públicas externas (ex: PokeAPI), usam o modelo `text-embedding-3-small` para RAG vetorial e requerem uma conta no [Langfuse](https://cloud.langfuse.com) para observabilidade (módulos 15 e 16).
 
 ---
 
