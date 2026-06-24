@@ -73,18 +73,39 @@ part_langgraph/
 │       ├── general_agent/
 │       └── reverse_text_agent/
 │
-└── introduce_langgraph_13/     # Introdução a RAG (consulta à PokeAPI)
+├── introduce_langgraph_13/     # Introdução a RAG (consulta à PokeAPI)
+│   ├── graph_executor.py
+│   ├── states/
+│   ├── graphs/
+│   ├── checkpointers/
+│   ├── llm_models/
+│   ├── tools/
+│   │   └── pokemon_tool.py
+│   └── agents/
+│       ├── router_agent/
+│       ├── general_agent/
+│       └── pokemon_agent/
+│
+└── introduce_langgraph_14/     # RAG vetorial com embeddings e vector store
     ├── graph_executor.py
     ├── states/
     ├── graphs/
     ├── checkpointers/
     ├── llm_models/
+    ├── embeddings/
+    │   └── embeddings.py
+    ├── vector_stores/
+    │   └── knowledge_vector_store.py
+    ├── pipelines/
+    │   └── ingestion_pipeline.py
+    ├── documents/
+    │   └── knowledge_base.txt
     ├── tools/
-    │   └── pokemon_tool.py
+    │   └── knowledge_search_tool.py
     └── agents/
         ├── router_agent/
         ├── general_agent/
-        └── pokemon_agent/
+        └── knowledge_agent/
 ```
 
 ---
@@ -144,6 +165,12 @@ part_langgraph/
 |---|---|
 | `introduce_langgraph_13/` | Primeira aplicação do padrão **RAG (Retrieval-Augmented Generation)**: o agente recupera informação de uma fonte externa (PokeAPI) e injeta o resultado no contexto do LLM antes da geração. Mostra que RAG **não precisa ser vetorial** — o ciclo `retrieve → augment → generate` se aplica a qualquer fonte (API REST, SQL, busca lexical, vector store). Substitui o `reverse_text_agent` pelo `pokemon_agent`, especialista em Pokémon |
 
+### Bloco 9 — RAG Vetorial com Embeddings e Vector Store (pasta 14)
+
+| Artefato | Descrição |
+|---|---|
+| `introduce_langgraph_14/` | Evolução do RAG para a forma vetorial: um arquivo `.txt` é carregado, dividido em chunks (`RecursiveCharacterTextSplitter`), transformado em vetores (`OpenAIEmbeddings`) e indexado em um `InMemoryVectorStore`. A busca passa a ser por **similaridade semântica** em vez de chamada a API externa. Introduz o pipeline de ingestão com os 4 passos canônicos — **Load → Split → Embed → Index** — e uma `knowledge_search_tool` que executa o retrieve dentro do agente especialista |
+
 ---
 
 ## Como Executar
@@ -154,16 +181,17 @@ Execute a partir da raiz do projeto para que as importações relativas funcione
 # Arquivos simples (módulos 1–9)
 python -m part_langgraph.introduce_langgraph_1
 
-# Versões em pacote (módulos 10, 11, 12 e 13)
+# Versões em pacote (módulos 10–14)
 python -m part_langgraph.introduce_langgraph_10.graph_executor
 python -m part_langgraph.introduce_langgraph_11.graph_executor
 python -m part_langgraph.introduce_langgraph_12.graph_executor
 python -m part_langgraph.introduce_langgraph_13.graph_executor
+python -m part_langgraph.introduce_langgraph_14.graph_executor
 ```
 
 > Os módulos 2 em diante pedem input pelo terminal. Digite sua mensagem e pressione Enter.
 
-> ⚠️ Os módulos **11, 12 e 13** fazem chamadas reais à API da OpenAI e geram custo por execução. O módulo **13** também consulta a [PokeAPI](https://pokeapi.co/) (pública e gratuita).
+> ⚠️ Os módulos **11, 12, 13 e 14** fazem chamadas reais à API da OpenAI e geram custo por execução. O módulo **13** também consulta a [PokeAPI](https://pokeapi.co/) (pública e gratuita). O módulo **14** usa o modelo `text-embedding-3-small` para gerar embeddings.
 
 ---
 
@@ -173,6 +201,7 @@ Os módulos com chamadas a LLM usam o modelo `gpt-4.1-mini` da OpenAI via `ChatO
 
 ---
 
-## Próximo Passo
+## Modelos Utilizados
 
-Com o padrão RAG introduzido via API REST, o próximo módulo evolui para **RAG vetorial**: indexação de texto livre com embeddings, armazenamento em vector store e busca por similaridade semântica — mostrando outra forma de implementar o mesmo ciclo `retrieve → augment → generate`.
+- Chat: `gpt-4.1-mini` via `ChatOpenAI`
+- Embeddings: `text-embedding-3-small` via `OpenAIEmbeddings` (módulo 14)
