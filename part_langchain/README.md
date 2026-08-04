@@ -45,7 +45,7 @@ part_langchain/
 ├── introduce_langchain_17.py  # Múltiplas tools com despacho por dicionário
 ├── introduce_langchain_18.py  # Multi-agente: Router + Bio + General (monolítico)
 │
-├── introduce_langchain_18_organized_1/   # Refatoração 1 — separação por chains
+├── introduce_langchain_19/   # Refatoração 1 — separação por chains
 │   ├── orchestrator.py
 │   ├── llm/
 │   └── chains/
@@ -53,7 +53,7 @@ part_langchain/
 │       ├── bio_chain.py
 │       └── general_chain.py
 │
-└── introduce_langchain_18_organized_2/   # Refatoração 2 — separação por agentes
+└── introduce_langchain_20/   # Refatoração 2 — separação por agentes
     ├── orchestrator.py
     ├── llm/
     │   └── llm.py
@@ -114,8 +114,8 @@ part_langchain/
 | Artefato | Descrição |
 |---|---|
 | `_18.py` | Sistema completo em um único arquivo: **Router** → **Bio Agent** ou **General Agent**, com histórico compartilhado |
-| `_18_organized_1/` | Primeira refatoração: chains extraídas para módulos separados (`chains/`) com um `orchestrator.py` central |
-| `_18_organized_2/` | Segunda refatoração: cada agente vira um pacote próprio com chain, parser, template, system prompt e response format isolados |
+| `_19/` | Primeira refatoração: chains extraídas para módulos separados (`chains/`) com um `orchestrator.py` central |
+| `_20/` | Segunda refatoração: cada agente vira um pacote próprio com chain, parser, template, system prompt e response format isolados |
 
 ---
 
@@ -131,7 +131,7 @@ python -m part_langchain.introduce_langchain_1
 python -m part_langchain.introduce_langchain_18
 
 # Versão multi-agente refatorada (organização 2)
-python -m part_langchain.introduce_langchain_18_organized_2.orchestrator
+python -m part_langchain.introduce_langchain_20.orchestrator
 ```
 
 > Os arquivos 7 em diante pedem input pelo terminal. Digite sua mensagem e pressione Enter.

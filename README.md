@@ -116,5 +116,5 @@ Se é a primeira vez aqui, o caminho é:
 
 1. Faça o **setup inicial** acima
 2. Abra o [README da `part_openai`](./part_openai/README.md) e rode o exemplo único — entende o fluxo cru da API
-3. Vá para [`part_langchain`](./part_langchain/README.md) e siga a numeração dos arquivos do `_1` ao `_18`
+3. Vá para [`part_langchain`](./part_langchain/README.md) e siga a numeração dos arquivos do `_1` ao `_20`
 4. Termine em [`part_langgraph`](./part_langgraph/README.md), também na ordem numérica, até o módulo mais recente
